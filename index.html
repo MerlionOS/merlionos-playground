@@ -283,7 +283,7 @@
         Born for AI. Built by AI.
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/gh/nicknisi/nicknisi.github.io@master/v86/libv86.js"></script>
+    <script src="v86/libv86.js"></script>
     <script>
         let emulator = null;
 
@@ -308,15 +308,15 @@
                 document.getElementById('loading-text').textContent = 'Booting kernel...';
 
                 emulator = new V86({
-                    wasm_path: "https://cdn.jsdelivr.net/gh/nicknisi/nicknisi.github.io@master/v86/v86.wasm",
+                    wasm_path: "v86/v86.wasm",
                     memory_size: 32 * 1024 * 1024,
                     vga_memory_size: 2 * 1024 * 1024,
                     screen_container: document.getElementById("screen_container"),
                     bios: {
-                        url: "https://cdn.jsdelivr.net/gh/nicknisi/nicknisi.github.io@master/v86/seabios.bin",
+                        url: "v86/seabios.bin",
                     },
                     vga_bios: {
-                        url: "https://cdn.jsdelivr.net/gh/nicknisi/nicknisi.github.io@master/v86/vgabios.bin",
+                        url: "v86/vgabios.bin",
                     },
                     fda: {
                         buffer: buffer,
