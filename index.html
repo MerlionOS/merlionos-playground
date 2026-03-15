@@ -265,7 +265,7 @@
                 <h2>Merlion<span>OS</span></h2>
                 <p>A Rust x86_64 hobby OS running in your browser</p>
                 <button class="start-btn" onclick="startVM()">Boot MerlionOS</button>
-                <div class="specs">x86 emulation via v86 | 32 MB RAM | VGA display</div>
+                <div class="specs">x86 emulation via v86 | 128 MB RAM | VGA display</div>
             </div>
 
             <div id="loading-overlay" style="display: none;">
@@ -277,6 +277,13 @@
         </div>
     </main>
 
+    <div id="serial-output" style="display:none;"></div>
+    <div style="margin: 0 16px 8px; max-height: 150px; overflow-y: auto;">
+        <details>
+            <summary style="color: #666; font-size: 12px; cursor: pointer; padding: 4px;">Serial Output (debug)</summary>
+            <pre id="serial-log" style="background: #0a0a0f; color: #0ecb81; padding: 8px; font-size: 11px; font-family: monospace; max-height: 120px; overflow-y: auto; border: 1px solid #1a1a2a; border-radius: 4px; white-space: pre-wrap;"></pre>
+        </details>
+    </div>
     <footer>
         <a href="https://merlionos.org">merlionos.org</a> |
         Powered by <a href="https://github.com/copy/v86">v86</a> x86 emulator |
@@ -309,8 +316,8 @@
 
                 emulator = new V86({
                     wasm_path: "v86/v86.wasm",
-                    memory_size: 32 * 1024 * 1024,
-                    vga_memory_size: 2 * 1024 * 1024,
+                    memory_size: 128 * 1024 * 1024,
+                    vga_memory_size: 8 * 1024 * 1024,
                     screen_container: document.getElementById("screen_container"),
                     bios: {
                         url: "v86/seabios.bin",
@@ -318,10 +325,20 @@
                     vga_bios: {
                         url: "v86/vgabios.bin",
                     },
-                    fda: {
+                    hda: {
                         buffer: buffer,
                     },
                     autostart: true,
+                    serial_container_xtermjs: document.getElementById("serial-output"),
+                    log_level: 0,
+                });
+
+                // Capture serial output for debugging
+                emulator.add_listener("serial0-output-byte", function(byte) {
+                    const ch = String.fromCharCode(byte);
+                    const el = document.getElementById("serial-log");
+                    el.textContent += ch;
+                    el.scrollTop = el.scrollHeight;
                 });
 
                 emulator.add_listener("emulator-ready", function() {
