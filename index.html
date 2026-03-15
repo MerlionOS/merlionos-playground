@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             background: #0a0a0f;
             color: #e0e0e0;
@@ -16,7 +15,6 @@
             display: flex;
             flex-direction: column;
         }
-
         header {
             display: flex;
             align-items: center;
@@ -25,7 +23,6 @@
             background: #12121a;
             border-bottom: 1px solid #2a2a3a;
         }
-
         .logo {
             display: flex;
             align-items: center;
@@ -33,10 +30,8 @@
             text-decoration: none;
             color: #e0e0e0;
         }
-
         .logo-icon {
-            width: 32px;
-            height: 32px;
+            width: 32px; height: 32px;
             background: #e94560;
             border-radius: 6px;
             display: flex;
@@ -47,12 +42,10 @@
             font-size: 16px;
             color: white;
         }
-
         .logo-text { font-size: 18px; font-weight: 700; }
         .logo-text span { color: #e94560; }
-
-        .header-links { display: flex; gap: 16px; align-items: center; }
-        .header-links a { color: #888; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .header-links { display: flex; gap: 16px; }
+        .header-links a { color: #888; text-decoration: none; font-size: 14px; }
         .header-links a:hover { color: #e94560; }
 
         .status-bar {
@@ -65,16 +58,14 @@
             font-size: 13px;
             color: #666;
         }
-
         .status-indicator { display: flex; align-items: center; gap: 6px; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; }
-        .status-dot.running { background: #0ecb81; }
-        .status-dot.loading { background: #f0b90b; animation: pulse 1s infinite; }
+        .status-dot.connected { background: #0ecb81; }
+        .status-dot.queued { background: #f0b90b; animation: pulse 1s infinite; }
         .status-dot.error { background: #f6465d; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
         .controls { display: flex; gap: 8px; margin-left: auto; }
-
         .btn {
             padding: 4px 14px;
             border: 1px solid #333;
@@ -83,37 +74,22 @@
             color: #ccc;
             font-size: 13px;
             cursor: pointer;
-            transition: all 0.2s;
         }
         .btn:hover { background: #2a2a3a; border-color: #e94560; color: #fff; }
 
-        .mode-toggle { display: flex; gap: 0; }
-        .mode-toggle .btn { border-radius: 0; }
-        .mode-toggle .btn:first-child { border-radius: 4px 0 0 4px; }
-        .mode-toggle .btn:last-child { border-radius: 0 4px 4px 0; }
-        .mode-toggle .btn.active { background: #e94560; border-color: #e94560; color: white; }
+        .timer { font-family: monospace; color: #f0b90b; font-size: 13px; }
 
         main {
             flex: 1;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 16px;
-            gap: 12px;
-        }
-
-        #vga-container {
-            background: #000;
-            border: 1px solid #2a2a3a;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
         }
 
         #terminal-container {
-            width: 720px;
-            height: 450px;
+            width: 740px;
+            height: 470px;
             background: #000;
             border: 1px solid #2a2a3a;
             border-radius: 8px;
@@ -122,21 +98,12 @@
             display: none;
         }
 
-        .start-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(10,10,15,0.95);
-            z-index: 10;
+        .start-screen {
+            text-align: center;
         }
-
-        .start-overlay h2 { font-size: 28px; margin-bottom: 8px; }
-        .start-overlay h2 span { color: #e94560; }
-        .start-overlay p { color: #888; margin-bottom: 24px; font-size: 15px; }
-
+        .start-screen h2 { font-size: 28px; margin-bottom: 8px; }
+        .start-screen h2 span { color: #e94560; }
+        .start-screen p { color: #888; margin-bottom: 24px; font-size: 15px; }
         .start-btn {
             padding: 12px 32px;
             background: #e94560;
@@ -146,33 +113,21 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
         }
         .start-btn:hover { background: #d63a54; }
-
+        .start-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .specs { margin-top: 24px; font-size: 12px; color: #555; }
-        .specs .note { color: #e94560; margin-top: 8px; display: block; }
 
-        .loading-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.9);
-            z-index: 10;
+        .queue-info {
+            text-align: center;
+            display: none;
         }
-
-        .loader {
-            width: 48px; height: 48px;
-            border: 3px solid #2a2a3a;
-            border-top-color: #e94560;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        .queue-info .position {
+            font-size: 48px;
+            font-weight: 700;
+            color: #f0b90b;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text { margin-top: 16px; font-size: 14px; color: #888; }
+        .queue-info p { color: #888; margin-top: 8px; }
 
         footer {
             padding: 12px 24px;
@@ -182,17 +137,6 @@
             border-top: 1px solid #1a1a2a;
         }
         footer a { color: #e94560; text-decoration: none; }
-
-        .info-banner {
-            background: #1a1520;
-            border: 1px solid #2a2030;
-            border-radius: 6px;
-            padding: 12px 16px;
-            margin: 0 16px;
-            font-size: 13px;
-            color: #b88;
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -212,81 +156,88 @@
             <div class="status-dot" id="status-dot"></div>
             <span id="status-text">Ready</span>
         </div>
-        <div class="mode-toggle">
-            <button class="btn active" id="btn-vga" onclick="switchMode('vga')">VGA</button>
-            <button class="btn" id="btn-serial" onclick="switchMode('serial')">Serial</button>
-        </div>
+        <span class="timer" id="timer" style="display:none;"></span>
         <div class="controls">
-            <button class="btn" id="btn-reset" onclick="resetVM()">Reset</button>
+            <span id="pool-info" style="font-size:12px;"></span>
+            <button class="btn" id="btn-reset" style="display:none;" onclick="resetSession()">Reset</button>
         </div>
     </div>
 
     <main>
-        <div id="vga-container" style="width: 720px; height: 450px; position: relative;">
-            <div class="start-overlay" id="start-overlay">
-                <h2>Merlion<span>OS</span></h2>
-                <p>A Rust x86_64 hobby OS running in your browser</p>
-                <button class="start-btn" onclick="startVM()">Boot MerlionOS</button>
-                <div class="specs">
-                    v86 x86 emulator | 128 MB RAM | VGA + Serial output
-                    <span class="note">Note: x86_64 long mode is experimental in v86. The kernel may not fully boot.</span>
-                </div>
+        <div class="start-screen" id="start-screen">
+            <h2>Merlion<span>OS</span></h2>
+            <p>A Rust x86_64 hobby OS — live in your browser</p>
+            <button class="start-btn" id="start-btn" onclick="connect()">Boot MerlionOS</button>
+            <div class="specs">
+                QEMU x86_64 emulation | 128 MB RAM | Serial console
             </div>
-            <div class="loading-overlay" id="loading-overlay" style="display: none;">
-                <div class="loader"></div>
-                <div class="loading-text" id="loading-text">Loading emulator...</div>
-            </div>
-            <div id="screen_container"></div>
+        </div>
+
+        <div class="queue-info" id="queue-screen">
+            <p style="color:#f0b90b; font-size:14px;">Waiting for available slot...</p>
+            <div class="position" id="queue-position">-</div>
+            <p>in queue</p>
         </div>
 
         <div id="terminal-container"></div>
     </main>
 
-    <div class="info-banner" id="info-banner">
-        MerlionOS is an x86_64 kernel. v86 has limited long mode support — if the boot stalls,
-        try the <strong>Serial</strong> view for diagnostic output, or
-        <a href="https://merlionos.org/getting-started/quickstart/">run locally with QEMU</a> for the full experience.
-    </div>
-
     <footer>
         <a href="https://merlionos.org">merlionos.org</a> |
-        Powered by <a href="https://github.com/copy/v86">v86</a> x86 emulator |
+        Powered by QEMU x86_64 |
         Born for AI. Built by AI.
     </footer>
 
-    <script src="v86/libv86.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
     <script>
-        let emulator = null;
-        let term = null;
-        let serialBuffer = '';
+        // Configuration — change this to your server URL
+        const WS_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'ws://localhost:3020/ws'
+            : `wss://playground-api.merlionos.org/ws`;
 
-        function setStatus(state, text) {
-            document.getElementById('status-dot').className = 'status-dot ' + state;
+        let ws = null;
+        let term = null;
+        let fitAddon = null;
+        let timerInterval = null;
+        let timeRemaining = 0;
+
+        function setStatus(cls, text) {
+            document.getElementById('status-dot').className = 'status-dot ' + cls;
             document.getElementById('status-text').textContent = text;
         }
 
-        function switchMode(mode) {
-            const vga = document.getElementById('vga-container');
-            const serial = document.getElementById('terminal-container');
-            const btnVga = document.getElementById('btn-vga');
-            const btnSerial = document.getElementById('btn-serial');
+        function showScreen(name) {
+            document.getElementById('start-screen').style.display = name === 'start' ? 'block' : 'none';
+            document.getElementById('queue-screen').style.display = name === 'queue' ? 'block' : 'none';
+            document.getElementById('terminal-container').style.display = name === 'terminal' ? 'block' : 'none';
+            document.getElementById('btn-reset').style.display = name === 'terminal' ? 'inline-block' : 'none';
+        }
 
-            if (mode === 'vga') {
-                vga.style.display = 'block';
-                serial.style.display = 'none';
-                btnVga.classList.add('active');
-                btnSerial.classList.remove('active');
-            } else {
-                vga.style.display = 'none';
-                serial.style.display = 'block';
-                btnSerial.classList.add('active');
-                btnVga.classList.remove('active');
-                if (!term) initTerminal();
-            }
+        function startTimer(secs) {
+            timeRemaining = secs;
+            const el = document.getElementById('timer');
+            el.style.display = 'inline';
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    el.textContent = 'Session expired';
+                    return;
+                }
+                const m = Math.floor(timeRemaining / 60);
+                const s = timeRemaining % 60;
+                el.textContent = `${m}:${s.toString().padStart(2, '0')} remaining`;
+                // Warn at 1 minute
+                if (timeRemaining === 60) {
+                    el.style.color = '#f6465d';
+                }
+            }, 1000);
         }
 
         function initTerminal() {
+            if (term) return;
             term = new Terminal({
                 theme: {
                     background: '#0a0a0f',
@@ -296,77 +247,93 @@
                 fontSize: 14,
                 fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace",
                 cursorBlink: true,
-                cols: 80,
-                rows: 25,
             });
+            fitAddon = new FitAddon.FitAddon();
+            term.loadAddon(fitAddon);
             term.open(document.getElementById('terminal-container'));
-            if (serialBuffer) term.write(serialBuffer);
+            fitAddon.fit();
 
-            // Forward keyboard to emulator
             term.onData(function(data) {
-                if (emulator) {
-                    for (let i = 0; i < data.length; i++) {
-                        emulator.serial0_send(data.charCodeAt(i));
-                    }
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'input', data: data }));
                 }
             });
+
+            window.addEventListener('resize', () => { if (fitAddon) fitAddon.fit(); });
         }
 
-        async function startVM() {
-            document.getElementById('start-overlay').style.display = 'none';
-            document.getElementById('loading-overlay').style.display = 'flex';
-            document.getElementById('info-banner').style.display = 'block';
-            setStatus('loading', 'Loading...');
+        function connect() {
+            document.getElementById('start-btn').disabled = true;
+            setStatus('queued', 'Connecting...');
 
-            document.getElementById('loading-text').textContent = 'Downloading MerlionOS image (1.6 MB)...';
+            ws = new WebSocket(WS_URL);
+            ws.binaryType = 'arraybuffer';
 
-            try {
-                const resp = await fetch('images/merlionos.bin');
-                const buffer = await resp.arrayBuffer();
+            ws.onopen = () => {
+                setStatus('queued', 'Connected, waiting for session...');
+            };
 
-                document.getElementById('loading-text').textContent = 'Booting kernel...';
+            ws.onmessage = (event) => {
+                if (typeof event.data === 'string') {
+                    const msg = JSON.parse(event.data);
+                    switch (msg.type) {
+                        case 'status':
+                            document.getElementById('pool-info').textContent =
+                                `${msg.active}/${msg.max} active`;
+                            break;
+                        case 'queued':
+                            showScreen('queue');
+                            document.getElementById('queue-position').textContent = '#' + msg.position;
+                            setStatus('queued', msg.message);
+                            break;
+                        case 'ready':
+                            showScreen('terminal');
+                            initTerminal();
+                            setStatus('connected', 'Running');
+                            startTimer(msg.timeout_secs);
+                            term.focus();
+                            break;
+                        case 'error':
+                            setStatus('error', msg.message);
+                            showScreen('start');
+                            document.getElementById('start-btn').disabled = false;
+                            break;
+                    }
+                } else {
+                    // Binary: serial output from QEMU
+                    if (term) {
+                        const bytes = new Uint8Array(event.data);
+                        term.write(bytes);
+                    }
+                }
+            };
 
-                emulator = new V86({
-                    wasm_path: "v86/v86.wasm",
-                    memory_size: 128 * 1024 * 1024,
-                    vga_memory_size: 8 * 1024 * 1024,
-                    screen_container: document.getElementById("screen_container"),
-                    bios: { url: "v86/seabios.bin" },
-                    vga_bios: { url: "v86/vgabios.bin" },
-                    hda: { buffer: buffer },
-                    autostart: true,
-                    log_level: 0,
-                });
+            ws.onclose = () => {
+                setStatus('error', 'Disconnected');
+                if (timerInterval) clearInterval(timerInterval);
+                document.getElementById('timer').style.display = 'none';
+                // Show start screen again after a delay
+                setTimeout(() => {
+                    showScreen('start');
+                    document.getElementById('start-btn').disabled = false;
+                }, 2000);
+            };
 
-                emulator.add_listener("serial0-output-byte", function(byte) {
-                    const ch = String.fromCharCode(byte);
-                    serialBuffer += ch;
-                    if (term) term.write(ch);
-                });
-
-                emulator.add_listener("emulator-ready", function() {
-                    document.getElementById('loading-overlay').style.display = 'none';
-                    setStatus('running', 'Running');
-                });
-
-                setTimeout(function() {
-                    document.getElementById('loading-overlay').style.display = 'none';
-                    setStatus('running', 'Running');
-                }, 5000);
-
-            } catch (err) {
-                document.getElementById('loading-text').textContent = 'Failed to load: ' + err.message;
-                setStatus('error', 'Error');
-            }
+            ws.onerror = () => {
+                setStatus('error', 'Connection failed — is the server running?');
+                showScreen('start');
+                document.getElementById('start-btn').disabled = false;
+            };
         }
 
-        function resetVM() {
-            if (emulator) {
-                serialBuffer = '';
-                if (term) term.clear();
-                emulator.restart();
-                setStatus('running', 'Rebooting...');
-            }
+        function resetSession() {
+            if (ws) ws.close();
+            if (term) { term.dispose(); term = null; fitAddon = null; }
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('timer').style.display = 'none';
+            showScreen('start');
+            document.getElementById('start-btn').disabled = false;
+            setStatus('', 'Ready');
         }
     </script>
 </body>
