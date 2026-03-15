@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MerlionOS Playground</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -47,28 +48,11 @@
             color: white;
         }
 
-        .logo-text {
-            font-size: 18px;
-            font-weight: 700;
-        }
+        .logo-text { font-size: 18px; font-weight: 700; }
+        .logo-text span { color: #e94560; }
 
-        .logo-text span {
-            color: #e94560;
-        }
-
-        .header-links {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-        }
-
-        .header-links a {
-            color: #888;
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.2s;
-        }
-
+        .header-links { display: flex; gap: 16px; align-items: center; }
+        .header-links a { color: #888; text-decoration: none; font-size: 14px; transition: color 0.2s; }
         .header-links a:hover { color: #e94560; }
 
         .status-bar {
@@ -82,32 +66,14 @@
             color: #666;
         }
 
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #444;
-        }
-
+        .status-indicator { display: flex; align-items: center; gap: 6px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; }
         .status-dot.running { background: #0ecb81; }
         .status-dot.loading { background: #f0b90b; animation: pulse 1s infinite; }
+        .status-dot.error { background: #f6465d; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        .controls {
-            display: flex;
-            gap: 8px;
-            margin-left: auto;
-        }
+        .controls { display: flex; gap: 8px; margin-left: auto; }
 
         .btn {
             padding: 4px 14px;
@@ -119,28 +85,25 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
         .btn:hover { background: #2a2a3a; border-color: #e94560; color: #fff; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .btn-primary {
-            background: #e94560;
-            border-color: #e94560;
-            color: white;
-        }
-
-        .btn-primary:hover { background: #d63a54; }
+        .mode-toggle { display: flex; gap: 0; }
+        .mode-toggle .btn { border-radius: 0; }
+        .mode-toggle .btn:first-child { border-radius: 4px 0 0 4px; }
+        .mode-toggle .btn:last-child { border-radius: 0 4px 4px 0; }
+        .mode-toggle .btn.active { background: #e94560; border-color: #e94560; color: white; }
 
         main {
             flex: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 16px;
+            gap: 12px;
         }
 
-        #screen-container {
-            position: relative;
+        #vga-container {
             background: #000;
             border: 1px solid #2a2a3a;
             border-radius: 8px;
@@ -148,37 +111,15 @@
             box-shadow: 0 4px 24px rgba(0,0,0,0.5);
         }
 
-        #screen-container canvas,
-        #screen-container div {
-            display: block;
-        }
-
-        #loading-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.9);
-            z-index: 10;
-        }
-
-        .loader {
-            width: 48px;
-            height: 48px;
-            border: 3px solid #2a2a3a;
-            border-top-color: #e94560;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .loading-text {
-            margin-top: 16px;
-            font-size: 14px;
-            color: #888;
+        #terminal-container {
+            width: 720px;
+            height: 450px;
+            background: #000;
+            border: 1px solid #2a2a3a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+            display: none;
         }
 
         .start-overlay {
@@ -192,18 +133,9 @@
             z-index: 10;
         }
 
-        .start-overlay h2 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-
+        .start-overlay h2 { font-size: 28px; margin-bottom: 8px; }
         .start-overlay h2 span { color: #e94560; }
-
-        .start-overlay p {
-            color: #888;
-            margin-bottom: 24px;
-            font-size: 15px;
-        }
+        .start-overlay p { color: #888; margin-bottom: 24px; font-size: 15px; }
 
         .start-btn {
             padding: 12px 32px;
@@ -216,14 +148,31 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-
         .start-btn:hover { background: #d63a54; }
 
-        .specs {
-            margin-top: 24px;
-            font-size: 12px;
-            color: #555;
+        .specs { margin-top: 24px; font-size: 12px; color: #555; }
+        .specs .note { color: #e94560; margin-top: 8px; display: block; }
+
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.9);
+            z-index: 10;
         }
+
+        .loader {
+            width: 48px; height: 48px;
+            border: 3px solid #2a2a3a;
+            border-top-color: #e94560;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { margin-top: 16px; font-size: 14px; color: #888; }
 
         footer {
             padding: 12px 24px;
@@ -232,8 +181,18 @@
             color: #444;
             border-top: 1px solid #1a1a2a;
         }
-
         footer a { color: #e94560; text-decoration: none; }
+
+        .info-banner {
+            background: #1a1520;
+            border: 1px solid #2a2030;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 0 16px;
+            font-size: 13px;
+            color: #b88;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -253,37 +212,42 @@
             <div class="status-dot" id="status-dot"></div>
             <span id="status-text">Ready</span>
         </div>
+        <div class="mode-toggle">
+            <button class="btn active" id="btn-vga" onclick="switchMode('vga')">VGA</button>
+            <button class="btn" id="btn-serial" onclick="switchMode('serial')">Serial</button>
+        </div>
         <div class="controls">
-            <button class="btn" id="btn-reset" disabled onclick="resetVM()">Reset</button>
-            <button class="btn" id="btn-fullscreen" disabled onclick="toggleFullscreen()">Fullscreen</button>
+            <button class="btn" id="btn-reset" onclick="resetVM()">Reset</button>
         </div>
     </div>
 
     <main>
-        <div id="screen-container" style="width: 720px; height: 400px;">
+        <div id="vga-container" style="width: 720px; height: 450px; position: relative;">
             <div class="start-overlay" id="start-overlay">
                 <h2>Merlion<span>OS</span></h2>
                 <p>A Rust x86_64 hobby OS running in your browser</p>
                 <button class="start-btn" onclick="startVM()">Boot MerlionOS</button>
-                <div class="specs">x86 emulation via v86 | 128 MB RAM | VGA display</div>
+                <div class="specs">
+                    v86 x86 emulator | 128 MB RAM | VGA + Serial output
+                    <span class="note">Note: x86_64 long mode is experimental in v86. The kernel may not fully boot.</span>
+                </div>
             </div>
-
-            <div id="loading-overlay" style="display: none;">
+            <div class="loading-overlay" id="loading-overlay" style="display: none;">
                 <div class="loader"></div>
                 <div class="loading-text" id="loading-text">Loading emulator...</div>
             </div>
-
             <div id="screen_container"></div>
         </div>
+
+        <div id="terminal-container"></div>
     </main>
 
-    <div id="serial-output" style="display:none;"></div>
-    <div style="margin: 0 16px 8px; max-height: 150px; overflow-y: auto;">
-        <details>
-            <summary style="color: #666; font-size: 12px; cursor: pointer; padding: 4px;">Serial Output (debug)</summary>
-            <pre id="serial-log" style="background: #0a0a0f; color: #0ecb81; padding: 8px; font-size: 11px; font-family: monospace; max-height: 120px; overflow-y: auto; border: 1px solid #1a1a2a; border-radius: 4px; white-space: pre-wrap;"></pre>
-        </details>
+    <div class="info-banner" id="info-banner">
+        MerlionOS is an x86_64 kernel. v86 has limited long mode support — if the boot stalls,
+        try the <strong>Serial</strong> view for diagnostic output, or
+        <a href="https://merlionos.org/getting-started/quickstart/">run locally with QEMU</a> for the full experience.
     </div>
+
     <footer>
         <a href="https://merlionos.org">merlionos.org</a> |
         Powered by <a href="https://github.com/copy/v86">v86</a> x86 emulator |
@@ -291,22 +255,70 @@
     </footer>
 
     <script src="v86/libv86.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
     <script>
         let emulator = null;
+        let term = null;
+        let serialBuffer = '';
 
         function setStatus(state, text) {
-            const dot = document.getElementById('status-dot');
-            const txt = document.getElementById('status-text');
-            dot.className = 'status-dot ' + state;
-            txt.textContent = text;
+            document.getElementById('status-dot').className = 'status-dot ' + state;
+            document.getElementById('status-text').textContent = text;
+        }
+
+        function switchMode(mode) {
+            const vga = document.getElementById('vga-container');
+            const serial = document.getElementById('terminal-container');
+            const btnVga = document.getElementById('btn-vga');
+            const btnSerial = document.getElementById('btn-serial');
+
+            if (mode === 'vga') {
+                vga.style.display = 'block';
+                serial.style.display = 'none';
+                btnVga.classList.add('active');
+                btnSerial.classList.remove('active');
+            } else {
+                vga.style.display = 'none';
+                serial.style.display = 'block';
+                btnSerial.classList.add('active');
+                btnVga.classList.remove('active');
+                if (!term) initTerminal();
+            }
+        }
+
+        function initTerminal() {
+            term = new Terminal({
+                theme: {
+                    background: '#0a0a0f',
+                    foreground: '#0ecb81',
+                    cursor: '#e94560',
+                },
+                fontSize: 14,
+                fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace",
+                cursorBlink: true,
+                cols: 80,
+                rows: 25,
+            });
+            term.open(document.getElementById('terminal-container'));
+            if (serialBuffer) term.write(serialBuffer);
+
+            // Forward keyboard to emulator
+            term.onData(function(data) {
+                if (emulator) {
+                    for (let i = 0; i < data.length; i++) {
+                        emulator.serial0_send(data.charCodeAt(i));
+                    }
+                }
+            });
         }
 
         async function startVM() {
             document.getElementById('start-overlay').style.display = 'none';
             document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('info-banner').style.display = 'block';
             setStatus('loading', 'Loading...');
 
-            document.getElementById('loading-text').textContent = 'Downloading MerlionOS image...';
+            document.getElementById('loading-text').textContent = 'Downloading MerlionOS image (1.6 MB)...';
 
             try {
                 const resp = await fetch('images/merlionos.bin');
@@ -319,62 +331,41 @@
                     memory_size: 128 * 1024 * 1024,
                     vga_memory_size: 8 * 1024 * 1024,
                     screen_container: document.getElementById("screen_container"),
-                    bios: {
-                        url: "v86/seabios.bin",
-                    },
-                    vga_bios: {
-                        url: "v86/vgabios.bin",
-                    },
-                    hda: {
-                        buffer: buffer,
-                    },
+                    bios: { url: "v86/seabios.bin" },
+                    vga_bios: { url: "v86/vgabios.bin" },
+                    hda: { buffer: buffer },
                     autostart: true,
-                    serial_container_xtermjs: document.getElementById("serial-output"),
                     log_level: 0,
                 });
 
-                // Capture serial output for debugging
                 emulator.add_listener("serial0-output-byte", function(byte) {
                     const ch = String.fromCharCode(byte);
-                    const el = document.getElementById("serial-log");
-                    el.textContent += ch;
-                    el.scrollTop = el.scrollHeight;
+                    serialBuffer += ch;
+                    if (term) term.write(ch);
                 });
 
                 emulator.add_listener("emulator-ready", function() {
                     document.getElementById('loading-overlay').style.display = 'none';
-                    document.getElementById('btn-reset').disabled = false;
-                    document.getElementById('btn-fullscreen').disabled = false;
                     setStatus('running', 'Running');
                 });
 
-                // Fallback: hide loading after 5 seconds even if event doesn't fire
                 setTimeout(function() {
                     document.getElementById('loading-overlay').style.display = 'none';
-                    document.getElementById('btn-reset').disabled = false;
-                    document.getElementById('btn-fullscreen').disabled = false;
                     setStatus('running', 'Running');
                 }, 5000);
 
             } catch (err) {
                 document.getElementById('loading-text').textContent = 'Failed to load: ' + err.message;
-                setStatus('', 'Error');
+                setStatus('error', 'Error');
             }
         }
 
         function resetVM() {
             if (emulator) {
+                serialBuffer = '';
+                if (term) term.clear();
                 emulator.restart();
-                setStatus('running', 'Running (reset)');
-            }
-        }
-
-        function toggleFullscreen() {
-            const container = document.getElementById('screen-container');
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                container.requestFullscreen();
+                setStatus('running', 'Rebooting...');
             }
         }
     </script>
